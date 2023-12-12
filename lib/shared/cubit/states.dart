@@ -10,3 +10,4 @@ class AppOpenDatabaseState extends AppState {}
 class AppGetDataFromDatabaseState extends AppState {}
 class AppLoadingDataFromDatabaseState extends AppState {}
 class AppInsertIntoDatabaseState extends AppState {}
+class AppUpdateDatabaseState extends AppState {}

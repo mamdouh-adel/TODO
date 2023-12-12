@@ -20,7 +20,7 @@ class NewTasksScreen extends StatelessWidget {
             padding: const EdgeInsetsDirectional.only(top: 20.0),
             child: ListView.separated(
                 itemBuilder: (context, index) =>
-                    buildTaskItem(cubit.tasks[index]),
+                    buildTaskItem(cubit.newTasks[index], context),
                 separatorBuilder: (context, index) => Padding(
                       padding: const EdgeInsetsDirectional.all(12.0),
                       child: Container(
@@ -29,7 +29,7 @@ class NewTasksScreen extends StatelessWidget {
                         color: Colors.grey[300],
                       ),
                     ),
-                itemCount: cubit.tasks.length),
+                itemCount: cubit.newTasks.length),
           ),
         );
       },

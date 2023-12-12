@@ -16,12 +16,16 @@ class AppCubit extends Cubit<AppState> {
   late Database _database;
   IconData _fabIcon = Icons.edit;
   bool _isBottomSheetShown = false;
-  List<Map> _tasks = [];
+  final List<Map> _newTasks = [];
+  final List<Map> _doneTasks = [];
+  final List<Map> _archivedTasks = [];
 
   int get currentIndex => _currentIndex;
   IconData get fabIcon => _fabIcon;
   bool get isBottomSheetShown => _isBottomSheetShown;
-  List<Map> get tasks => _tasks;
+  List<Map> get newTasks => _newTasks;
+  List<Map> get doneTasks => _doneTasks;
+  List<Map> get archivedTasks => _archivedTasks;
 
   final List<String> subTitles = ["New Tasks", "Done Tasks", "Archived Tasks"];
 
@@ -67,17 +71,30 @@ class AppCubit extends Cubit<AppState> {
       print("openDatabase finished ${db.getVersion()}");
       _database = db;
       emit(AppOpenDatabaseState());
-      getAllDataFromDatabase(_database).then((value) {
-        _tasks = value;
-        print(tasks);
-        emit(AppGetDataFromDatabaseState());
-      });
+      getAllDataFromDatabase();
     });
   }
 
-  Future<List<Map>> getAllDataFromDatabase(Database database) async {
+  void getAllDataFromDatabase() {
+    _newTasks.clear();
+    _doneTasks.clear();
+    _archivedTasks.clear();
+
     emit(AppLoadingDataFromDatabaseState());
-    return await database.rawQuery("SELECT * FROM tasks");
+
+    _database.rawQuery("SELECT * FROM tasks").then((value) {
+      for (var element in value) {
+        if (element["status"] == "new") {
+          _newTasks.add(element);
+        } else if (element["status"] == "done") {
+          _doneTasks.add(element);
+        } else {
+          _archivedTasks.add(element);
+        }
+      }
+
+      emit(AppGetDataFromDatabaseState());
+    });
   }
 
   Future insertIntoDatabase(
@@ -90,12 +107,16 @@ class AppCubit extends Cubit<AppState> {
             .then((value) {
           print("$value inserted successfully");
           emit(AppInsertIntoDatabaseState());
-          getAllDataFromDatabase(_database).then((value) {
-            _tasks = value;
-            print(tasks);
-            emit(AppGetDataFromDatabaseState());
-          });
+          getAllDataFromDatabase();
         }).catchError((error) => print(
                 "An error occurred while inserting records, Error: $error")));
+  }
+
+  void updateData(String newStatus, int id) {
+    _database.rawUpdate('UPDATE tasks SET status = ? WHERE id = ?',
+        [newStatus, id]).then((value) {
+      emit(AppUpdateDatabaseState());
+      getAllDataFromDatabase();
+    });
   }
 }
